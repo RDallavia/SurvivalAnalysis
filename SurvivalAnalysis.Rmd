@@ -7,14 +7,73 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
 ```
 
-## R Markdown
+```{r}
+data = read.csv("Survival.csv", stringsAsFactors = FALSE)
+```
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+```{r}
+str(data)
+```
+Create right-censoring var (still working at end of study or left org for some reason other than voluntary turn over)
+```{r}
+data = data %>%
+    mutate(censored = if_else((Turnover == 1), 1, 0))
+```
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+```{r}
+head(data, n=20)
+```
+```{r}
+hist(data$LOS)
+```
 
-##
+```{r}
+hist(subset(data, Turnover==0)$LOS)
+```
 
+```{r}
+# 1 is voluntary turnover
+hist(subset(data, Turnover==1)$LOS)
+```
+
+#Kaplan-Meir-Analysis (KMA)
+```{r}
+#install.packages("survival")
+library(survival)
+```
+
+```{r}
+# specify KMA model; empty model implies no covariates; categorical covariates can be included in this type of model. ~1 says gimme null model
+
+# LOS = Time to event
+# Censored is second var 
+km_fit1 = survfit(Surv(LOS, censored) ~ 1, 
+                  data = data,
+                  type = "kaplan-meier")
+```
+
+```{r}
+print(km_fit1)
+```
+# summarize KM analysis results using default time intervals and create a life table
+```{r}
+# time (days) the event happens
+# n.risk (num of people at risk of event)
+# n.event (num of people who actually experience the event - here voluntary turnover)
+# survival (% of intervals who passed thru, survived, the event - cumulative survival rate)
+summary(km_fit1)
+```
+
+# summarize km analysis results by pre-specified time interval & create life table
+```{r}
+summary(km_fit1, times=c(30, 60, 90*(1:30)))
+```
+
+```{r}
+# plot cum survival rates
+plot(km_fit1)
+```
 
