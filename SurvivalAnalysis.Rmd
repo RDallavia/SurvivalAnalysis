@@ -127,3 +127,8 @@ x = 1 - 0.8961
 x
 ```
 
+All are relative to the black reference group. Below equation simply an expression of the above coefficients.
+```{r}
+log_overall_risk = .121*race_hsp - .044*race_white -.110*pay_hourly + .141*pay_satisfaction
+```
+
