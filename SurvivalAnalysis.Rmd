@@ -129,6 +129,25 @@ x
 
 All are relative to the black reference group. Below equation simply an expression of the above coefficients.
 ```{r}
-log_overall_risk = .121*race_hsp - .044*race_white -.110*pay_hourly + .141*pay_satisfaction
+log_overall_risk = .121*hsp - .044*white -.110*pay_hourly + .141*pay_satisfaction
 ```
+Log risk of above individual (hisp=1, white=0, pay_hourly=16, pay_satisfaction = 4.00) --> -1.075 --> exponentiation gets you .34129. 
+
+Log value means overall risk of experiencing event; exponentiation tells us the overall risk of this individual who is hsp, non-white, makes 16/hr, & pay satisfaction of 4 out of possible 5, is .341. So, individual is 65% less likely to quit if coefficient of 0 attends each covariate in the model. If every coefficient is 0, the individual must be black (0 for hsp, 0 for white), however, pay would be $0, which implies slavery, and pay satisfaction would be 0, but we only want it to range between 0 and 1.  Here's how to fix that:
+
+```{r}
+# grand mean center continuous variables so you are making comparisons on avg variables
+data$centered_hourly_pay = scale(data$pay_hourly, center=TRUE, scale=FALSE)
+data$centered_pay_satisfaction = scale(data$pay_sat, levels=c("Hispanic", "Black", "White"))
+
+#Since our subject is Hisp, reorder levels to make Hispanic the reference group
+data$hispanic = factor(data$race, levels=c("Hispanic", "Black", "White"))
+
+#re-estimate cox proportional hazard model with categorical & continuous covariates
+cox_reg3 = coxph(data(LOS, censored) ~ hispanic_race + pay_hourly + pay_sat, data=data)
+summary(cox_reg3)
+
+recalc then 1-% is reveals how much a hisp person is less likely to leave relative to other hispanics with average scores on non-race vars. 
+```
+
 
