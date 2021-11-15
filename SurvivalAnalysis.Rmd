@@ -77,3 +77,53 @@ summary(km_fit1, times=c(30, 60, 90*(1:30)))
 plot(km_fit1)
 ```
 
+```{r}
+install.packages("survminer")
+library(survminer)
+```
+
+```{r}
+# from serveminer package
+ggsurvplot(km_fit1, data=data, risk.table = TRUE, conf.int = TRUE,
+           ggtheme=theme_classic())
+
+```
+# adds covariate (i.e., categorical predictor variable) race; note median equals time to event
+```{r}
+km_fit2 = survfit(Surv(LOS, censored) ~ Race, 
+                  data = data,
+                  type = "kaplan-meier")
+print(km_fit2)
+# n is sample size for each group, events is num of people who experienced event by the end of the study, median time to event, CI intervals around those events.
+```
+
+```{r}
+summary(km_fit2)
+```
+
+```{r}
+ggsurvplot(km_fit2, data=data, risk.table = TRUE, conf.int = TRUE,
+           ggtheme=theme_classic(), pval=TRUE, pval.method=TRUE)
+# pval tells you if curves differ by race, pval.method = TRUE applies log-rank test (prints p-val to see if observed diffs are stat significantly)
+```
+
+Cox Prop Hazard Model (cox regressions)
+```{r}
+cox_reg1 = coxph(Surv(LOS, censored) ~ Race, data=data)
+summary(cox_reg1) 
+#coef -> euler's num ^coef 
+#z=waldstat
+#everything interpreted relative to the black group b/c its done alphabetically
+#concordance -> how well did the model predicted individ. people's experience of event in terms of time; indicates how well model predicted event. Here, it's no better than a coin toss. SE variable of .014 says including our covariate, race improved our model very little. 
+# Log rank test is significance you report with smaller sample sizes.
+```
+```{r}
+cox_reg2 = coxph(Surv(LOS, censored) ~ Race + Pay_sat + Pay_hourly, data=data)
+summary(cox_reg2)
+```
+Second table has hazard coefficients. Hourly coefficient is significant. Below, tells us risk of individual experiencing (voluntarily tourning over) the focal event will decrease by about 10.39% for every $ earned. Conf interval above relates to hazard ratio (.8961) not its reciprocal (1.1160)
+```{r}
+x = 1 - 0.8961
+x
+```
+
