@@ -150,4 +150,13 @@ summary(cox_reg3)
 recalc then 1-% is reveals how much a hisp person is less likely to leave relative to other hispanics with average scores on non-race vars. 
 ```
 
+Models can be cross-compared with ANOVA
+```{r}
+install.packages("tidyr")
+library(tidyr)
+cox_reg1 = coxph(Surv(LOS, censored) ~ Race, data=drop_na(data, LOS, censored, race, pay_hourly, pay_satisfaction)) # tidyr provides drop_na
+cox_reg2 = coxph(Surv(LOS, censored) ~ Race, data=drop_na(data, LOS, censored, race, pay_hourly, pay_satisfaction))
+
+anova(cox_reg1, cox_reg2) # reveals chi-square values less than .05, so second model, the full model, is better
+```
 
